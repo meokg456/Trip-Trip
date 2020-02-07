@@ -10,7 +10,6 @@ class MainScreen extends StatefulWidget {
 
   @override
   _MainScreenState createState() {
-    getData();
     return _MainScreenState();
   }
 }
@@ -41,18 +40,18 @@ class Tour {
         avatar = json['avatar'];
 }
 
-List<Widget> _tabs = <Widget>[
-  Asistant(),
-  Text(
-    'Index 0: Home',
-  ),
-  Container(),
-  Container(),
-  Container(),
-];
-
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
+
+  List<Widget> _tabs = <Widget>[
+    Asistant(),
+    Text(
+      'Index 0: Home',
+    ),
+    Container(),
+    Container(),
+    Container(),
+  ];
   final PageStorageBucket bucket = PageStorageBucket();
   List<String> _tabNames = <String>[
     'Assistant',
@@ -74,7 +73,10 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: PageStorage(
         bucket: bucket,
-        child: _tabs[_selectedIndex],
+        child: IndexedStack(
+          children: _tabs,
+          index: _selectedIndex,
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
@@ -111,8 +113,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-List<Tour> _tourList = [];
-
 class Asistant extends StatefulWidget {
   Asistant({Key key}) : super(key: key);
 
@@ -120,24 +120,29 @@ class Asistant extends StatefulWidget {
   _AsistantState createState() => _AsistantState();
 }
 
-void getData() async {
-  var response = await MyAPIClient.client.get(Constant.get_tour_list_url,
-      headers: {'Authorization': MyAPIClient.accessToken});
-  var jsonResponse = convert.jsonDecode(response.body);
-  // var total = jsonResponse['total'];
-  // var count = int.parse(total);
-  var list = jsonResponse['tours'];
-  for (int i = 0; i < 10; i++) {
-    var tour = Tour.fromJson(list[i]);
-    print(list[i]);
-    _tourList.add(tour);
-  }
-}
+List<Tour> _tourList = [];
 
 class _AsistantState extends State<Asistant> {
   @override
   void initState() {
     super.initState();
+    getData();
+  }
+
+  void getData() async {
+    var response = await MyAPIClient.client.get(Constant.get_tour_list_url,
+        headers: {'Authorization': MyAPIClient.accessToken});
+    var jsonResponse = convert.jsonDecode(response.body);
+    // var total = jsonResponse['total'];
+    // var count = int.parse(total);
+    var list = jsonResponse['tours'];
+    for (int i = 0; i < 10; i++) {
+      var tour = Tour.fromJson(list[i]);
+      print(list[i]);
+      setState(() {
+        _tourList.add(tour);
+      });
+    }
   }
 
   @override
