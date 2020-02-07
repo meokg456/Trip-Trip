@@ -137,7 +137,7 @@ class _RegisterState extends State<Register> {
                   style: TextStyle(
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'AppFont',
+                      fontFamily: 'App Font',
                       color: Colors.white)),
             ),
             Form(

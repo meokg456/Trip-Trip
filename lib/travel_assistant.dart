@@ -1,18 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
-import 'package:trip_trip/manager/constant.dart';
+import 'package:trip_trip/manager/my_api_client.dart';
 import 'dart:convert' as convert;
-import 'manager/my_api_client.dart';
-
-class MainScreen extends StatefulWidget {
-  MainScreen({Key key}) : super(key: key);
-
-  @override
-  _MainScreenState createState() {
-    return _MainScreenState();
-  }
-}
+import 'manager/constant.dart';
 
 class Tour {
   int id;
@@ -38,79 +29,6 @@ class Tour {
         childs = json['childs'],
         isPrivate = json['isPrivate'],
         avatar = json['avatar'];
-}
-
-class _MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
-
-  List<Widget> _tabs = <Widget>[
-    Asistant(),
-    Text(
-      'Index 0: Home',
-    ),
-    Container(),
-    Container(),
-    Container(),
-  ];
-  final PageStorageBucket bucket = PageStorageBucket();
-  List<String> _tabNames = <String>[
-    'Assistant',
-    'My tour',
-    'Explore',
-    'Notifications',
-    'Setting'
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _tabNames[_selectedIndex],
-          style: TextStyle(color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-      body: PageStorage(
-        bucket: bucket,
-        child: IndexedStack(
-          children: _tabs,
-          index: _selectedIndex,
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.assistant_photo),
-            title: Text(_tabNames[0]),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            title: Text(_tabNames[1]),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            title: Text(_tabNames[2]),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            title: Text(
-              _tabNames[3],
-              style: TextStyle(fontSize: 11),
-            ),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            title: Text(_tabNames[4]),
-          ),
-        ],
-        type: BottomNavigationBarType.fixed,
-        showUnselectedLabels: false,
-        currentIndex: _selectedIndex,
-        onTap: (value) => setState(() => _selectedIndex = value),
-      ),
-    );
-  }
 }
 
 class Asistant extends StatefulWidget {
@@ -166,10 +84,11 @@ class _AsistantState extends State<Asistant> {
       var tour = Tour.fromJson(list[i]);
       print(list[i]);
       _tourList.add(tour);
+      setState(() {
+        _showTourList.add(tour);
+      });
     }
-    setState(() {
-      _showTourList.addAll(_tourList);
-    });
+
     _page++;
   }
 
@@ -190,7 +109,9 @@ class _AsistantState extends State<Asistant> {
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 onTap: () {
-                  _isSearching = true;
+                  setState(() {
+                    _isSearching = true;
+                  });
                 },
                 onChanged: (value) {
                   setState(() {
@@ -219,12 +140,15 @@ class _AsistantState extends State<Asistant> {
                       child: IconButton(
                           icon: Icon(Icons.cancel),
                           onPressed: () {
-                            _isSearching = false;
-                            _searchFocusNode.unfocus();
-                            _searchController.text = '';
-                            setState(() {
-                              _showTourList.clear();
-                              _showTourList.addAll(_tourList);
+                            Future.delayed(Duration(milliseconds: 50))
+                                .then((_) {
+                              setState(() {
+                                _isSearching = false;
+                                _showTourList.clear();
+                                _showTourList.addAll(_tourList);
+                              });
+                              _searchFocusNode.unfocus();
+                              _searchController.clear();
                             });
                           }),
                     ),
@@ -247,9 +171,8 @@ class _AsistantState extends State<Asistant> {
                         children: <Widget>[
                           Image(
                             image: _showTourList[index].avatar == null
-                                ? NetworkImage(
-                                    'https://dulichviet.com.vn/images/bandidau/images/CH%C3%82U%20%C3%81/Indonesia/Indonesia%202017/du-lich-indonesia-den-tanah-lot-dao-bali_du-lich-viet.jpg')
-                                : Image.asset('Images/du_lich.jpg'),
+                                ? AssetImage('Images/du_lich.jpg')
+                                : NetworkImage(_showTourList[index].avatar),
                             fit: BoxFit.cover,
                           ),
                           ListTile(

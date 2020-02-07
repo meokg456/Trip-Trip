@@ -6,7 +6,7 @@ import 'manager/constant.dart';
 import 'dart:convert' as convert;
 import 'package:trip_trip/widgets.dart';
 import 'package:trip_trip/register_screen.dart';
-import 'travel_assistant.dart';
+import 'main_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Login extends StatefulWidget {
@@ -103,7 +103,7 @@ class _LoginState extends State<Login> {
                         style: TextStyle(
                             fontSize: 48,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'AppFont',
+                            fontFamily: 'App Font',
                             color: Colors.white)),
                     Padding(
                       padding: EdgeInsets.only(top: 20),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:trip_trip/travel_assistant.dart';
+import 'package:trip_trip/main_screen.dart';
 
 import 'login_screen.dart';
 import 'manager/my_api_client.dart';
