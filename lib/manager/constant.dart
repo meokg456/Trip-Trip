@@ -20,6 +20,9 @@ class Constant {
   static const String dob_edittext_action = "Pick a date";
   static const String register_url = "http://35.197.153.192:3000/user/register";
   static const String login_url = "http://35.197.153.192:3000/user/login";
+  static const String source_url = "35.197.153.192:3000";
+  static const String tour_list_path = "/tour/list";
+
   static const String get_tour_list_url =
       "http://35.197.153.192:3000/tour/list";
 }

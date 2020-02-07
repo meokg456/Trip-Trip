@@ -101,7 +101,7 @@ class _LoginState extends State<Login> {
                     Text(Constant.login_button,
                         textAlign: TextAlign.left,
                         style: TextStyle(
-                            fontSize: 40,
+                            fontSize: 48,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'AppFont',
                             color: Colors.white)),

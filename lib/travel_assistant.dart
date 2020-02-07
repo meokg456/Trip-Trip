@@ -120,114 +120,216 @@ class Asistant extends StatefulWidget {
   _AsistantState createState() => _AsistantState();
 }
 
-List<Tour> _tourList = [];
-
 class _AsistantState extends State<Asistant> {
-  @override
-  void initState() {
-    super.initState();
-    getData();
-  }
-
-  void getData() async {
-    var response = await MyAPIClient.client.get(Constant.get_tour_list_url,
-        headers: {'Authorization': MyAPIClient.accessToken});
-    var jsonResponse = convert.jsonDecode(response.body);
-    // var total = jsonResponse['total'];
-    // var count = int.parse(total);
-    var list = jsonResponse['tours'];
-    for (int i = 0; i < 10; i++) {
-      var tour = Tour.fromJson(list[i]);
-      print(list[i]);
+  var _searchController = TextEditingController();
+  void _scrollListener() {
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.forward) {
       setState(() {
-        _tourList.add(tour);
+        _scrollingUp = true;
       });
+    }
+    if (_scrollController.position.userScrollDirection ==
+        ScrollDirection.reverse) {
+      setState(() {
+        _scrollingUp = false;
+      });
+    }
+    if (_scrollController.offset >=
+            _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      getData();
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    getData();
+    setState(() {
+      _scrollController.addListener(_scrollListener);
+    });
+  }
+
+  List<Tour> _showTourList = [];
+  List<Tour> _tourList = [];
+  void getData() async {
+    var uri = Uri.http(Constant.source_url, Constant.tour_list_path,
+        {"pageNum": _page.toString(), "rowPerPage": _pagesize.toString()});
+    var response = await MyAPIClient.client
+        .get(uri, headers: {'Authorization': MyAPIClient.accessToken});
+    var jsonResponse = convert.jsonDecode(response.body);
+    // var total = jsonResponse['total'];
+    // var count = int.parse(total);
+    List<dynamic> list = jsonResponse['tours'];
+    for (int i = 0; i < list.length; i++) {
+      var tour = Tour.fromJson(list[i]);
+      print(list[i]);
+      _tourList.add(tour);
+    }
+    setState(() {
+      _showTourList.addAll(_tourList);
+    });
+    _page++;
+  }
+
+  int _page = 0;
+  int _pagesize = 10;
+  bool _scrollingUp = true;
+  ScrollController _scrollController = ScrollController();
+  FocusNode _searchFocusNode = FocusNode();
+  bool _isSearching = false;
+  @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        key: PageStorageKey('Assistant'),
-        itemCount: _tourList.length,
-        itemBuilder: (BuildContext context, int index) {
-          return Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20)),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Image(
-                    image: NetworkImage(_tourList[index].avatar == null
-                        ? 'https://dulichviet.com.vn/images/bandidau/images/CH%C3%82U%20%C3%81/Indonesia/Indonesia%202017/du-lich-indonesia-den-tanah-lot-dao-bali_du-lich-viet.jpg'
-                        : _tourList[index].avatar),
-                    fit: BoxFit.cover,
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.location_on,
-                      color: Colors.pink,
+    return Container(
+      child: Column(
+        children: <Widget>[
+          Visibility(
+            visible: _scrollingUp,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                onTap: () {
+                  _isSearching = true;
+                },
+                onChanged: (value) {
+                  setState(() {
+                    _showTourList.clear();
+                  });
+
+                  _tourList.forEach((element) {
+                    if (element.name
+                        .toLowerCase()
+                        .trim()
+                        .contains(value.toLowerCase().trim())) {
+                      setState(() {
+                        _showTourList.add(element);
+                      });
+                    }
+                  });
+                },
+                focusNode: _searchFocusNode,
+                controller: _searchController,
+                decoration: InputDecoration(
+                    labelText: "Search",
+                    hintText: "Search",
+                    prefixIcon: Icon(Icons.search),
+                    suffixIcon: Visibility(
+                      visible: _isSearching,
+                      child: IconButton(
+                          icon: Icon(Icons.cancel),
+                          onPressed: () {
+                            _isSearching = false;
+                            _searchFocusNode.unfocus();
+                            _searchController.text = '';
+                            setState(() {
+                              _showTourList.clear();
+                              _showTourList.addAll(_tourList);
+                            });
+                          }),
                     ),
-                    title: Text(
-                      _tourList[index].name,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.calendar_today,
-                      color: Colors.pink,
-                    ),
-                    title: Text(
-                      DateFormat('dd/MM/yyyy').format(DateTime(
-                              1970,
-                              1,
-                              1,
-                              0,
-                              0,
-                              0,
-                              int.parse(_tourList[index].startDate == null
-                                  ? "0"
-                                  : _tourList[index].startDate))) +
-                          " - " +
-                          DateFormat('dd/MM/yyyy').format(DateTime(
-                              1970,
-                              1,
-                              1,
-                              0,
-                              0,
-                              0,
-                              int.parse(_tourList[index].endDate == null
-                                  ? "0"
-                                  : _tourList[index].endDate))),
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.people,
-                      color: Colors.black,
-                    ),
-                    title: Text(
-                      _tourList[index].adults.toString() + " adults",
-                    ),
-                  ),
-                  ListTile(
-                    leading: Icon(
-                      Icons.attach_money,
-                      color: Colors.yellow,
-                    ),
-                    title: Text(
-                      NumberFormat.currency(
-                                  locale: 'vi_VN', name: 'VND', symbol: '')
-                              .format(int.parse(_tourList[index].minCost)) +
-                          '- ' +
-                          NumberFormat.currency(locale: 'vi_VN', name: 'VND')
-                              .format(int.parse(_tourList[index].minCost)),
-                      style: TextStyle(color: Colors.yellow),
-                    ),
-                  ),
-                ],
-              ));
-        });
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(25.0)))),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+                key: PageStorageKey('Assistant'),
+                controller: _scrollController,
+                itemCount: _showTourList.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Image(
+                            image: _showTourList[index].avatar == null
+                                ? NetworkImage(
+                                    'https://dulichviet.com.vn/images/bandidau/images/CH%C3%82U%20%C3%81/Indonesia/Indonesia%202017/du-lich-indonesia-den-tanah-lot-dao-bali_du-lich-viet.jpg')
+                                : Image.asset('Images/du_lich.jpg'),
+                            fit: BoxFit.cover,
+                          ),
+                          ListTile(
+                            leading: Icon(
+                              Icons.location_on,
+                              color: Colors.pink,
+                            ),
+                            title: Text(
+                              _showTourList[index].name,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          ListTile(
+                            leading: Icon(
+                              Icons.calendar_today,
+                              color: Colors.pink,
+                            ),
+                            title: Text(
+                              DateFormat('dd/MM/yyyy').format(DateTime(
+                                      1970,
+                                      1,
+                                      1,
+                                      0,
+                                      0,
+                                      0,
+                                      int.parse(
+                                          _showTourList[index].startDate == null
+                                              ? "0"
+                                              : _showTourList[index]
+                                                  .startDate))) +
+                                  " - " +
+                                  DateFormat('dd/MM/yyyy').format(DateTime(
+                                      1970,
+                                      1,
+                                      1,
+                                      0,
+                                      0,
+                                      0,
+                                      int.parse(
+                                          _showTourList[index].endDate == null
+                                              ? "0"
+                                              : _showTourList[index].endDate))),
+                            ),
+                          ),
+                          ListTile(
+                            leading: Icon(
+                              Icons.people,
+                              color: Colors.black,
+                            ),
+                            title: Text(
+                              _showTourList[index].adults.toString() +
+                                  " adults",
+                            ),
+                          ),
+                          ListTile(
+                            leading: Icon(
+                              Icons.attach_money,
+                              color: Colors.yellow,
+                            ),
+                            title: Text(
+                              NumberFormat.currency(
+                                          locale: 'vi_VN',
+                                          name: 'VND',
+                                          symbol: '')
+                                      .format(int.parse(
+                                          _showTourList[index].minCost)) +
+                                  '- ' +
+                                  NumberFormat.currency(
+                                          locale: 'vi_VN', name: 'VND')
+                                      .format(int.parse(
+                                          _showTourList[index].minCost)),
+                              style: TextStyle(color: Colors.yellow),
+                            ),
+                          ),
+                        ],
+                      ));
+                }),
+          )
+        ],
+      ),
+    );
   }
 }

@@ -135,7 +135,7 @@ class _RegisterState extends State<Register> {
               child: Text(Constant.register_button,
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                      fontSize: 40,
+                      fontSize: 48,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'AppFont',
                       color: Colors.white)),
