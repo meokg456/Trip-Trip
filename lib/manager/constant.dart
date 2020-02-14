@@ -5,6 +5,13 @@ class Constant {
   static const String register_button = "Register";
   static const String username_edittext_hint = "Username";
   static const String username_edittext_error = "Username can't be empty";
+  static const String tour_name_edittext_error = "Tour name can't be empty";
+  static const String start_day_edittext_error = "This can't be empty";
+  static const String end_day_edittext_error = "This can't be empty";
+  static const String adults_edittext_error = "This can't be empty";
+  static const String children_edittext_error = "This can't be empty";
+  static const String min_cost_edittext_error = "This can't be empty";
+  static const String max_cost_edittext_error = "This can't be empty";
   static const String password_edittext_hint = "Password";
   static const String confirm_password_edittext_hint = "Confirm password";
   static const String confirm_password_edittext_error =
@@ -22,6 +29,7 @@ class Constant {
   static const String login_url = "http://35.197.153.192:3000/user/login";
   static const String source_url = "35.197.153.192:3000";
   static const String tour_list_path = "/tour/list";
+  static const String history_tour_list_path = "/tour/history-user";
 
   static const String get_tour_list_url =
       "http://35.197.153.192:3000/tour/list";

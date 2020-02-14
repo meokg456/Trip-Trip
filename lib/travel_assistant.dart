@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:intl/intl.dart';
+import 'package:trip_trip/create_tour_screen.dart';
 import 'package:trip_trip/manager/my_api_client.dart';
 import 'dart:convert' as convert;
 import 'manager/constant.dart';
@@ -76,20 +77,22 @@ class _AsistantState extends State<Asistant> {
         {"pageNum": _page.toString(), "rowPerPage": _pagesize.toString()});
     var response = await MyAPIClient.client
         .get(uri, headers: {'Authorization': MyAPIClient.accessToken});
-    var jsonResponse = convert.jsonDecode(response.body);
-    // var total = jsonResponse['total'];
-    // var count = int.parse(total);
-    List<dynamic> list = jsonResponse['tours'];
-    for (int i = 0; i < list.length; i++) {
-      var tour = Tour.fromJson(list[i]);
-      print(list[i]);
-      _tourList.add(tour);
-      setState(() {
-        _showTourList.add(tour);
-      });
-    }
+    if (response.statusCode == 200) {
+      var jsonResponse = convert.jsonDecode(response.body);
+      // var total = jsonResponse['total'];
+      // var count = int.parse(total);
+      List<dynamic> list = jsonResponse['tours'];
+      for (int i = 0; i < list.length; i++) {
+        var tour = Tour.fromJson(list[i]);
+        print(list[i]);
+        _tourList.add(tour);
+        setState(() {
+          _showTourList.add(tour);
+        });
+      }
 
-    _page++;
+      _page++;
+    }
   }
 
   int _page = 0;
@@ -100,12 +103,21 @@ class _AsistantState extends State<Asistant> {
   bool _isSearching = false;
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'Create tour button in assistant',
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => CreateTourScreen()));
+        },
+        child: Icon(Icons.add),
+      ),
+      body: Column(
         children: <Widget>[
           Visibility(
             visible: _scrollingUp,
-            child: Padding(
+            child: Container(
+              height: 70,
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 onTap: () {
@@ -164,6 +176,7 @@ class _AsistantState extends State<Asistant> {
                 itemCount: _showTourList.length,
                 itemBuilder: (BuildContext context, int index) {
                   return Card(
+                      clipBehavior: Clip.antiAlias,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20)),
                       child: Column(
@@ -173,19 +186,22 @@ class _AsistantState extends State<Asistant> {
                             image: _showTourList[index].avatar == null
                                 ? AssetImage('Images/du_lich.jpg')
                                 : NetworkImage(_showTourList[index].avatar),
-                            fit: BoxFit.cover,
+                            fit: BoxFit.contain,
                           ),
                           ListTile(
+                            dense: true,
                             leading: Icon(
                               Icons.location_on,
                               color: Colors.pink,
                             ),
                             title: Text(
                               _showTourList[index].name,
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 18),
                             ),
                           ),
                           ListTile(
+                            dense: true,
                             leading: Icon(
                               Icons.calendar_today,
                               color: Colors.pink,
@@ -215,9 +231,11 @@ class _AsistantState extends State<Asistant> {
                                           _showTourList[index].endDate == null
                                               ? "0"
                                               : _showTourList[index].endDate))),
+                              style: TextStyle(fontSize: 18),
                             ),
                           ),
                           ListTile(
+                            dense: true,
                             leading: Icon(
                               Icons.people,
                               color: Colors.black,
@@ -225,9 +243,11 @@ class _AsistantState extends State<Asistant> {
                             title: Text(
                               _showTourList[index].adults.toString() +
                                   " adults",
+                              style: TextStyle(fontSize: 18),
                             ),
                           ),
                           ListTile(
+                            dense: true,
                             leading: Icon(
                               Icons.attach_money,
                               color: Colors.yellow,
@@ -244,7 +264,8 @@ class _AsistantState extends State<Asistant> {
                                           locale: 'vi_VN', name: 'VND')
                                       .format(int.parse(
                                           _showTourList[index].minCost)),
-                              style: TextStyle(color: Colors.yellow),
+                              style:
+                                  TextStyle(color: Colors.yellow, fontSize: 18),
                             ),
                           ),
                         ],

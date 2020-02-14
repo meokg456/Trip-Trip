@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:trip_trip/manager/constant.dart';
+import 'package:trip_trip/manager/my_api_client.dart';
+import 'dart:convert';
 
 class HistoryTour {
   int id;
@@ -38,15 +41,53 @@ class History extends StatefulWidget {
 }
 
 class _HistoryState extends State<History> {
+  List<HistoryTour> _showHistoryTour = [];
+  List<HistoryTour> _historyTour = [];
+
   var _searchController = TextEditingController();
   bool _isSearching = false;
   FocusNode _searchFocusNode = FocusNode();
+  int _page = 1;
+  int _pageSize = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
+  Future<void> getData() async {
+    var uri = Uri.http(Constant.source_url, Constant.history_tour_list_path,
+        {'pageIndex': _page.toString(), 'pageSize': _pageSize.toString()});
+    var response = await MyAPIClient.client
+        .get(uri, headers: {'Authorization': MyAPIClient.accessToken});
+    print(response.statusCode);
+    if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
+      print(jsonResponse);
+      List<dynamic> list = jsonResponse['tours'];
+      list.forEach((element) {
+        HistoryTour historyTour = HistoryTour.fromJson(element);
+        _historyTour.add(historyTour);
+        setState(() {
+          _showHistoryTour.add(historyTour);
+        });
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        heroTag: 'Create tour button in history',
+        onPressed: null,
+        child: Icon(Icons.add),
+      ),
+      body: Column(
         children: <Widget>[
-          Padding(
+          Container(
+            height: 70,
             padding: EdgeInsets.all(8),
             child: TextField(
               onTap: () {
@@ -82,7 +123,36 @@ class _HistoryState extends State<History> {
                 ),
               ),
             ),
-          )
+          ),
+          Expanded(
+            child: ListView.builder(
+                itemCount: _showHistoryTour.length,
+                itemBuilder: (BuildContext context, int index) {
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      children: <Widget>[
+                        Image(
+                            image: _showHistoryTour[index].avatar == null
+                                ? AssetImage('Images/du_lich.jpg')
+                                : NetworkImage(_showHistoryTour[index].avatar)),
+                        ListTile(
+                          dense: true,
+                          leading: Icon(
+                            Icons.location_on,
+                            color: Colors.pink,
+                          ),
+                          title: Text(
+                            _showHistoryTour[index].name,
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 18),
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                }),
+          ),
         ],
       ),
     );
